@@ -112,7 +112,7 @@ a > i {
     margin-left: 3px;
 }
 
-@media (max-width: 1000px) {
+@media (max-width: 850px) {
     .header {
         flex-direction: column;
         padding: 4rem 3rem;
