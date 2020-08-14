@@ -7,6 +7,10 @@
     --action-hover-color: #eb385f;
 }
 
+html {
+  height: -webkit-fill-available;
+}
+
 body {
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";    
     background: var(--bg-color);
@@ -32,6 +36,7 @@ a > i {
 
 #page-container {
     height: 100vh;
+    max-height: -webkit-fill-available;
     display: flex;
     align-items: center;
     justify-content: center;
