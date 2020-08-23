@@ -8,7 +8,7 @@
 }
 
 html {
-  height: -webkit-fill-available;
+  min-height: -webkit-fill-available;
 }
 
 body {
@@ -35,8 +35,7 @@ a > i {
 }
 
 #page-container {
-    height: 100vh;
-    max-height: -webkit-fill-available;
+    min-height: -webkit-fill-available;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -53,6 +52,18 @@ a > i {
     box-shadow: 0px 3px 15px rgba(0,0,0,0.2);
 }
 
+.container {
+  background-color: white;
+  display: flex;
+  align-items: left;
+  flex-direction: column;
+  padding: 2rem;
+
+  width: 100%;
+
+  box-shadow: 0px 3px 15px rgba(0,0,0,0.2);
+}
+
 #headshot-container {
     margin-right: 2rem;
 }
@@ -63,7 +74,12 @@ a > i {
 }
 
 .project {
-    padding: 2rem 5rem;
+  background-color: lightgrey;
+  padding: 0 1rem;
+  box-shadow: 0px 3px 15px rgba(0,0,0,0.2);
+
+  display: flex;
+  flex-direction: row;
 }
 
 .contact > a {
