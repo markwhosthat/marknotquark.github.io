@@ -191,7 +191,7 @@ a > i {
   }
 
   .container {
-    align-items: center !important;
+    justify-content: center !important;
   }
 
   #page-container {
