@@ -126,7 +126,6 @@ a > i {
 
 .card {
   width: 329px;
-  min-width: 382px;
   margin-bottom: 20px;
   
   border-radius: 8px;
