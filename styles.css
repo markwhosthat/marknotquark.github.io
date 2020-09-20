@@ -125,6 +125,7 @@ a > i {
 .card {
   width: 329px;
   margin-bottom: 20px;
+  margin-right: 15px;
   
   border-radius: 8px;
 
@@ -177,6 +178,10 @@ a > i {
 
 .echo {
   background-image: url(portfolio/echo.png);
+}
+
+.dog {
+  background-image: url(portfolio/dog-classifier.png);
 }
 
 .echo > figure {
