@@ -56,8 +56,6 @@ a > i {
   align-items: left;
   flex-direction: row;
   padding: 2rem;
-
-  width: 100%;
 }
 
 #headshot-container {
@@ -190,6 +188,10 @@ a > i {
       flex-direction: column;
       padding: 4rem 3rem;
       align-content: center;
+  }
+
+  .container {
+    align-items: center !important;
   }
 
   #page-container {
