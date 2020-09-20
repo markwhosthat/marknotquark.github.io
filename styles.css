@@ -184,6 +184,8 @@ a > i {
 .more-content {
   color: #a1a1a6;
   text-align: center;
+
+  max-height: 379;
 }
 
 .more-content > i {
