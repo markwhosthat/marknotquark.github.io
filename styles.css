@@ -126,8 +126,9 @@ a > i {
 
 .card {
   width: 320px;
+  height: 379px;
   min-width: 320px;
-  min-height: 379px;
+  max-height: 379px;
 
   margin-bottom: 20px;
   margin-right: 15px;
@@ -184,8 +185,6 @@ a > i {
 .more-content {
   color: #a1a1a6;
   text-align: center;
-
-  max-height: 379;
 }
 
 .more-content > i {
