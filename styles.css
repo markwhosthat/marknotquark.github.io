@@ -81,13 +81,20 @@ a > i {
 .contact > a {
   padding: .5rem;
   border: 0 .4rem;
-  background-color: grey;
-  color: white;
-  transition: .2s;
+  border-color: var(--action-color);
+  border-radius: 8px;
+  background-color: white;
+  color: black;
+  transition: .1s;
+
+  box-shadow: 0px 3px 15px rgba(0,0,0,0.07);
 }
 
 .contact > a:hover {
   background-color: var(--action-color);
+  color: white;
+
+  box-shadow: 0px 3px 15px rgba(0,0,0,0.2);
 }
 
 .contact > a > i {
@@ -95,7 +102,7 @@ a > i {
 }
 
 .headshot {
-  background-color: lightgrey;
+  background-color: #fafafa;
   height: 13rem;
   border-radius: 100%;
 }
