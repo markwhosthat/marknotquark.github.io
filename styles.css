@@ -5,6 +5,8 @@
   --secondary-color: #86868b;
   --action-color: #D62839;
   --action-hover-color: #eb385f;
+
+  --card-height: 380px;
 }
 
 html {
@@ -123,7 +125,7 @@ a > i {
 }
 
 .card {
-  min-height: 380px;
+  min-height: var(--card-height);
   
   border-radius: 8px;
 
@@ -183,7 +185,7 @@ a > i {
   display: flex;
   justify-content: center;
   align-items: center;
-  height: 100%;
+  min-height: var(--card-height);
   width: 100%;
 }
 
