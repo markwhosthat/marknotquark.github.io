@@ -190,11 +190,8 @@ a > i {
 }
 
 .echo {
+  background-color: black;
   background-image: url(portfolio/echo.png);
-}
-
-.echo > figure {
-  background-image: url(portfolio/echo-content.png)
 }
 
 .dog {
