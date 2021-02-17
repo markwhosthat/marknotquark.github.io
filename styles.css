@@ -200,6 +200,11 @@ a > i {
   background-image: url(portfolio/dog.png)
 }
 
+.turn-based {
+  background-color: #b24161;
+  background-image: url(portfolio/turn-based.png)
+}
+
 .ux {
   background-color: #f0babf;
   background-image: url(portfolio/lecture.png);
