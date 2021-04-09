@@ -99,5 +99,3 @@ blockquote { text-align: center; font-style: italic; color: #888; }
 @media (prefers-color-scheme: dark) { .articles > a > div .content, article .content { color: #cccccc; } .header-img { border-bottom: 1px solid #111111; } }
 
 @media (prefers-color-scheme: dark) { h1 { color: #ffffff; } body { color: #ffffff; } #content { background-color: #111111; } }
-
-/*# sourceMappingURL=main.css.map */
