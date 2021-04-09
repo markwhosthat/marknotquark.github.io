@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+
+  <link rel="icon" type="image/png" href="img/favicon.png">
+
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.2.1/css/bootstrap.min.css" integrity="sha384-GJzZqFGwb1QTTN6wy59ffF1BuGJpLSa9DkKMp0DgiMDm4iYMj70gZWKYbI706tWS" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.6.1/css/all.css" integrity="sha384-gfdkjb5BdAXd+lj+gudLWI+BXq4IuLW5IT+brZEZsLFm++aCMlF1V92rMkPaX4PP" crossorigin="anonymous">
+  <link href="posts.css" rel="stylesheet">
+
+  <title>Lecture Streaming &middot; Mark Polner</title>
+  <meta property="og:title" content="Lecture Streaming">
+  <meta property="og:site_name" content="Mark Polner">
+  <meta name="twitter:title" content="Building a Better Lecture Streaming Service - Mark Polner">
+
+  <meta property="og:image" content="img/posts/lecture/header.png">
+  <meta property="twitter:card" content="img/posts/lecture/header.png">
+
+  <meta name="twitter:url" content="/projects/lectures.html"/>
+  <meta name="robots" content="index,follow"/>
+
+  <meta property="og:description" content="A hallmark of 2020 was remote learning, and with it, the humble lecture streaming service. Previously a convenience for students too busy or, more likely, too lazy to attend their lectures in person, they have now become a requirement to learning in 2021. There’s just one problem: they all kind of suck.">
+  <meta property="og:type" content="article">
+  <meta property="og:article:published_time" content="2021-01-30T00:00:00+11:00">
+  <meta name="description" content="A hallmark of 2020 was remote learning, and with it, the humble lecture streaming service. Previously a convenience for students too busy or, more likely, too lazy to attend their lectures in person, they have now become a requirement to learning in 2021. There’s just one problem: they all kind of suck."/>
+  <meta property="og:article:author" content = "Mark Polner" />
+</head>
+<body>
+        <div class="header basic">
+    <div>
+        <a href="/" class="back-button"><span><span class="d-sm-inline">Mark Polner</a>
+        <a class="page-title" href="#">Lecture Streaming</a>
+    </div>
+</div>
+<div id="content">
+    
+<div class="header-img" style="background-image: url('img/posts/lecture/header.png');"></div>
+
+<div class="container page article">
+    <article>
+        <span class="post-info">UX Design &middot; <time class="date" datetime="2021-01-30T00:00:00+11:00">January 2021</time></span>
+        <h1>Lecture Streaming</h1>
+        <span class="subhead">Designing an online learning platform for humans, not robots.</span>
+        <div class="content"><p>A hallmark of 2020 was remote learning, and with it, the humble lecture streaming service. Previously a convenience for students too busy or, more likely, too lazy to attend their lectures in person, they have now become a requirement to learning in 2021. There’s just one problem: they all kind of suck.</p>
+
+<p>That’s not to say they don’t do their job. They just don’t do it well.</p>
+
+<p>As a part of the Human Interaction course at UNSW, I spent time designing a lecture streaming platform UI as a part of a group project. We distilled our own frustrations with current offerings, in turn creating a service that is not only more inuitive and efficient, but is actually <strong>fun to use</strong>.</p>
+
+<h2 id="philosophy">Philosophy</h2>
+
+<p>First things first: what actually sucks about current lecture offerings? At UNSW, like many other unis, we use a system called Echo365. They’re all typically designed like libraries: a big list of recordings, categorised by course. It’s great if you’re a fan of navigating page after page and remembering specific dates for each of your lectures. Unfortunately, most of us are human, and don’t like that.</p>
+
+<p><img src="img/posts/lecture/Echo3602.png" alt="Echo360 Screenshot 1" /></p>
+<blockquote>
+  <p>Ick. Talk about engaging.</p>
+</blockquote>
+
+<p>So, the solution was simple: put the user at the center of the design process. Think about how <em>a user</em> wants to navigate the service, and consider student needs from the beginning.</p>
+
+<p>We wanted a service that was the antithesis to the status quo: fun to use, engaging, and efficient. Without sounding too cliche, we wanted to make the “Netflix of lectures.” Make it easier to find what you’re looking for at a glance, don’t present endless lists to the user, and put everything in one place to help even the most unorganised student keep up.</p>
+
+<h2 id="but-what-do-the-users-want">But what do the users want?</h2>
+
+<p>We considered ourselves as primary users, and worked from there. By the start of the course, all of us had been used to using services like Echo360, TheBox, YouTube, Moodle, Teams, Zoom, and more, to have our lecture content delivered for the greater part of a year. We had our frustraitons, and we began to think about how to solve them.</p>
+
+<p>First and foremost, the actual presentation on competing services is kind of terrible. Echo360, for example, shows lectures in a grid, with very little visual distinction. It doesn’t even show you the date they were added, nor sort in any sort of recognisable way (by week, by date, by topic).</p>
+
+<p><img src="img/posts/lecture/Echo3601.png" alt="Echo360 Screenshot 1" /></p>
+<blockquote>
+  <p>Quick! Find me the second lecture in Week 5.</p>
+</blockquote>
+
+<p><strong>Discoverability, efficiency, and ease of use</strong> are paramount. No student wants to spend precious time browsing the website for their lectures like they’re looking for a movie to watch. Help them find the most relevant content easily, and focus on the experience once they’re there.</p>
+
+<p>We also considered that our own needs might be a bit different to these of other student types - we were all students taking extra classes over the summer, after all. To personify these users, we created a few different personas.</p>
+
+<ul>
+  <li>
+    <p><strong>Jenny, the underachiever</strong>: Jenny is a full time student who cares about passing. Often behind in her classes, she often only watches lectures bit-by-bit, and thus needs help remembering where she’s up to, easy access finding her most relevant lectures, and ways to allow her to speed up her consumption.</p>
+  </li>
+  <li>
+    <p><strong>Xavier, the overachiever</strong>: Xavier wants supercharged features. Playing every lecture live, he wants to be able to note where to come back to for revision later, the ability to ask questions, and a way to access his notes in the lecture platform.</p>
+  </li>
+  <li>
+    <p><strong>Dylan, the part-time student</strong>: Dylan takes an internship, so he’s engaged, but has little time. He needs features to ensure he can maximise the time he spends on the platform.</p>
+  </li>
+</ul>
+
+<p><img src="img/posts/lecture/personas.png" alt="Personas" /></p>
+<blockquote>
+  <p>Our three personas, personified!</p>
+</blockquote>
+
+<h2 id="features--feedback">Features &amp; Feedback</h2>
+
+<p>With our intrepid trio of Jenny, Xavier, and Dylan in hand, we imagined their <em>varying</em> needs and defined some basic functional requirements for our service, beyond typical player features (like playback speed, play/pause, etc). I’ll summarise them in more natural language below…</p>
+
+<ul>
+  <li>A timestamping feature that allows <em>either</em> lecturers or students to define points within a lecture playback, and a UI to enable quickly jumping to them. Each timestamp should have some information, like a description and a title.</li>
+  <li>Notes associated with a lecture are accessible from within the player alongside the relevant recording. This minimises the amount of time spent searching for content, supercharging the player.</li>
+  <li>The home page features a quick section to jump to live lectures, upcoming lectures, and in-progress recordings that the student is currently watching.
+    <ul>
+      <li>The home page also has ways of accessing the recordings/live streams per-course.</li>
+    </ul>
+  </li>
+  <li>Students can ask the lecturer questions in real-time, either under their name or anonymously. Lecturers can also respond to the questions in a thread.</li>
+</ul>
+
+<p><img src="img/posts/lecture/feature-sketching.png" alt="Initial Sketch" /></p>
+
+<blockquote>
+  <p>We began imaginging how our features might look when implemented. Here, the idea of a “toolbar” with the timestamp panel is presented. Note that we experimented with both lecturer and student timestamps.</p>
+</blockquote>
+
+<p>We ran a set of interviews with undergraduate students at and outside of UNSW. We ran a bunch of statistical analysis on this. I’m going to skip over the details, and highlight a few interesting insights that changed how our product was going to be designed.</p>
+
+<p>We asked students whether they would find making their own timestamped bookmarks or lecturers making bookmarks in a lecture more useful. Surprisingly, an overwhelming majority of students said that both features would be as useful as the other to them. This shifted our thinking; how can we design a product that better serves both of these functionalities?</p>
+
+<p>Otherwise, we found that most students agreed with our original vision of the product, confirming the accuracy of our personas in representing eventual user needs. Other insights were given, including:</p>
+
+<ul>
+  <li>The students we asked most often watch lectures in full, but at a time that is convenient to them. <strong>We needed to create a great way to watch past lectures in an organised, accessible, and efficient way</strong>.</li>
+  <li>Self described “low-performing” students were more likely to cram at the end of a term, watching parts of a lecture. <strong>Our timestamping features would become important to these students, saving time and increasing efficiency in accessing and revising content</strong>.</li>
+  <li>Most students thought that lecture offerings were slow, bulky, and unengaging - they wanted a more accessible platform; many describing wanting a platform like Twitch or YouTube.</li>
+</ul>
+
+<h2 id="our-paper-prototype">Our Paper Prototype</h2>
+
+<p>With our feedback in hand, our feature set ready to go, and our users in mind, we began designing the lecture service we would have all loved in 2020. I’ll focus on areas of the UI I primarily designed, and touch on the experience that was created and contributed to by the rest of the group. To visualise our UI, we created low fidelity paper prototypes.</p>
+
+<p>We didn’t develop these any further into more functional prototypes, but the experience is communicated clearly with the use of these sketches.</p>
+
+<h3 id="the-player">The Player</h3>
+
+<p>The player is the area where most time will be spent on the service - after all, the whole purpose of this platform is to stream lectures. So, it was very important to get this right.</p>
+
+<p>The player is separated into two distinct groupings, based on functionality. We’ll call these the stream, and the toolbox.</p>
+
+<p><img src="img/posts/lecture/LiveLectureSS1.png" alt="Live Lecture" /></p>
+
+<blockquote>
+  <p>The player in a currently live lecture</p>
+</blockquote>
+
+<p>First up, we wanted to make it clear where the user is. Taking inspiration from paradigms like those in iOS, the back arrow indicates where you’ll return to if you click on it. We inform the user of their context directly, and always give them control and ability to exit. We also make the title of the lecture clear, as well as the fact that it is currently live.</p>
+
+<p><strong>The toolbox</strong> is the super-powerful, multi-purpose area to access everything related to a lecture. When a student enters the service, they’re presented with a Live Q&amp;A box. We wanted to give access to all important functions, without taking the user too far out of the lecture itself.</p>
+
+<p>While the lecture is <strong>live</strong>, we present the user with Q&amp;A, Course Materials, and Timestamps.</p>
+
+<p><img src="img/posts/lecture/LiveLectureToolbar.png" alt="Live Lecture Toolbox" /></p>
+
+<blockquote>
+  <p>All three views in the Live Player Toolbox.</p>
+</blockquote>
+
+<p>In course resources, we imagined an easy way to associated lecture content to the lecture itself, increasing efficiency and effectiveness of the service for students who no longer needed to search around for their notes.</p>
+
+<p>We also worked with student-made timestamps. We associate a time-stamp to a dot on the timeline in the stream, so it’s easy to jump into each section of the lecture in the player. This mapping helps reduce cognitive load, and also makes for a more intutitive tool. We also considered impairments such as colour blindness, and designed an option to change the colour scheme, or use different shapes (not pictured).</p>
+
+<p>Finally, Q&amp;A takes inspiration from Microsoft Teams, but shows a chronoligcally ordered time-synced view of questions being asked, and can be viewed after the fact. We also allow students to post anonymously, so that there isn’t any hesitation to ask questions.</p>
+
+<h3 id="home--navigation">Home &amp; Navigation</h3>
+
+<p>We also considered ways to make navigation flow easier and more intutive. In platforms like Echo360, lists are prominent, and not much visual distinction is created. To reduce the need to recall information, we present thumbnails, as well as differentiating each course by colour - again, reducing cognitive load in finding class-specific lectures.</p>
+
+<p><img src="img/posts/lecture/LectureHomeSS1.png" alt="Lecture Homepage"/></p>
+
+<p>We also wanted to speed up the ability to find course resources, so we created a specific course-page that grouped both resources, as well as previous classes. This helps reduce search for our students who were short on time, and needed a quick and light interaction to find and watch specific course content.</p>
+
+<p><img src="img/posts/lecture/LectureHomeContent.png" alt="Lecture Content" /></p>
+
+<p>We also took student wellness into consideration, and designed an interface that encouraged users to take a break, especially after watching content for an unhealthy amount of time. We utilised a dark pattern of reducing the affordance given to the skip button (by making it look less like a button), further incentivising students to step back and take the break.</p> 
+
+<p><img src="img/posts/lecture/StudentWellness.png" alt="Student Wellness Alert" /></p>
+
+<h2 id="working-from-user-feedback">Working from User Feedback</h2>
+
+<p>In building this project, we kept in mind the user at every stage. While there are plenty more features we designed to cater to specific needs of our user personas, I wanted to highlight a specific feature that went through a few iterations throughout our design process.</p>
+
+<p>Originally, we imagined a way for students and lecturers to create timestamps in one place. We realised that this might be confusing, and “muddy the waters” with unrelated functionality in one user interface. To introduce constraints and thus make the interface more effective, we decided to ask our sample group: would you rather timestamp your own points in a video, or let a lecturer do it?</p>
+
+<p>Interestingly, most of the students who had participated in our questionnaire identified that both features were as important as each other. This indicated to us that our user’s needs should be met with two individual interfaces, not just one.</p>
+
+<p>To achieve this, we created two separate interfaces, one of which allows users to create timestamps in the live player, and the other that imagines a system in which lecturers can create “chapters”. Chapters only appears in the lecture playback, introducing a constraint and reducing errors on behalf of the user.</p>
+
+<p><img src="img/posts/lecture/InterfaceIteration.png" alt="Two Iterations" /></p>
+
+<blockquote>
+  <p>Our original imagined single interface and our seperated interface giving more importance to both distinct functionalities post feedback.</p>
+</blockquote>
+
+<p>Finally, in our real-world usability testing, in which we gave students a set of tasks to complete using our prototype interface, we found that most students were able to navigate and operate the respective interfaces efficiently. A few minor suggestions were made, such as changing the iconography, or giving a more distinct grouping to timestamps, which could be improved upon in a further iteration.</p>
+
+<h2 id="conclusion">Conclusion</h2>
+
+<p>So, what did we learn? During this project, we built a lecture platform of our (and many other students’) dreams. We looked at the current offerings, identified what made them great, and what made them suck, and from that, built a set of basic requirements. We imagined users of our platform, and shaped our workflows around what they’d want to achieve, placing the users at the center of our design process.</p>
+
+<p>We asked our potential userbase what they’d want in a questionnaire, and gained feedback about what they wanted - in many cases, our personas and our own opinions aligned with our users! And in a few others, we had a chance to learn and improve the interface.</p>
+
+<p>Finally, we built a paper prototype, and gave it to our users to try and achieve a set of tasks with it. We found that most users were able to navigate the service with ease, and only had minor issues.</p>
+
+<p>A more important take-away from this than this quick recap is that user centered design helps designers consider the needs of the user at each step, and build with the intentions of the user in mind. What do our users want? How can we help them best achieve that?</p>
+
+<p>An iterative approach, like the one briefly touched upon here, helps designers identify problems early on, and correct them. It also assists in creating interfaces that are efficient, intutitve, and easy to use.</p>
+
+<p>A massive thanks to my group for building this project with me throughout the summer term. It was grueling and involved many 3am nights of reading and analysing data, designing, and giving iterative feedback. I like to think it was worth it!</p>
+</div>
+    </article>
+    <br>
+    <a href="https://www.polner.dev/">&laquo; Back to Home</a>
+</div>
+</div>
+    </body>
+</html>
