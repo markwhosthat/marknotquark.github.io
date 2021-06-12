@@ -6,6 +6,11 @@
   --action-color: #D62839;
   --action-hover-color: #eb385f;
 
+
+  --bg-color-dark: ##101010;
+  --headline-color-dark: white;
+  --secondary-color-dark: #fafafa;
+
   --card-height: 380px;
 }
 
@@ -102,7 +107,6 @@ a > i {
   margin: 0;
   margin-bottom: 10px;
   color: var(--headline-color);
-  
 }
 
 #headline p {
@@ -218,6 +222,33 @@ a > i {
 
 .no-style {
   color: inherit !important;
+}
+
+@media (prefers-color-scheme: dark) {
+  body {
+    background: #1a1a1a;
+    color: white;
+  }
+
+  .header {
+    background-color: #0f0f0f;
+  }
+
+  #headline h1 {
+    color: var(--primary-color-dark);
+  }
+
+  .subtitle {
+    color: var(--secondary-color-dark);
+  }
+
+  .card {
+    background-color: #0f0f0f;
+  }
+
+  .lower-half > p {
+    color: white;
+  } 
 }
 
 /*! normalize.css v8.0.1 | MIT License | github.com/necolas/normalize.css */
