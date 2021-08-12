@@ -141,11 +141,8 @@ a > i {
   box-shadow: 0px 3px 15px rgba(0,0,0,0.05);
 }
 
-.card-post {  
-  border-radius: 8px;
-
-  background-color: white;
-  box-shadow: 0px 3px 15px rgba(0,0,0,0.05);
+.post-card {
+  min-height: auto !important;
 }
 
 .card:hover {
