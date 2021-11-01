@@ -63,6 +63,13 @@ a > i {
   grid-gap: 1rem;
 }
 
+.mini-card-container {
+  display: flex;
+  flex-direction: row;
+  gap: 10px;
+
+  flex-grow: 1;
+}
 
 .subtitle {
   color: var(--secondary-color);
@@ -136,6 +143,8 @@ a > i {
   margin-top: 10px;
   border-radius: 8px;
 
+  flex-grow: 1;
+
   padding: 25px;
 
   background-color: white;
@@ -199,7 +208,7 @@ a > i {
   line-height: 1.2;
 }
 
-.lower-half > .category {
+.category {
   margin-bottom: 4px;
   color: #86868b;
   font-size: 80%;
@@ -285,12 +294,17 @@ a > i {
 @media (max-width: 800px) {
   .card-fullwidth {
     flex-direction: column;
-    height: 20%;
+    height: 500px;
   }
 
   .card-side {
     border-bottom-left-radius: 0px;
     border-top-right-radius: 8px;
+  }
+  
+  .mini-card-container {
+    flex-direction: column;
+    gap: 0px;
   }
 }
 
