@@ -132,6 +132,24 @@ a > i {
   margin-left: 3px;
 }
 
+.card-miniheight {
+  margin-top: 10px;
+  border-radius: 8px;
+
+  padding: 25px;
+
+  background-color: white;
+  box-shadow: 0px 3px 15px rgba(0,0,0,0.05);
+}
+
+.upnext {
+  font-size: 1.2em;
+}
+
+.upnext-title {
+  font-weight: 700;
+}
+
 .card {
   min-height: var(--card-height);
   
@@ -139,6 +157,21 @@ a > i {
 
   background-color: white;
   box-shadow: 0px 3px 15px rgba(0,0,0,0.05);
+}
+
+.card-fullwidth {
+  display: flex;
+  direction: row;
+}
+
+.card-fullwidth-side {
+  flex-grow: 1;
+}
+
+.card-side {
+  min-width: 30%;
+  border-top-left-radius: 8px;
+  border-bottom-left-radius: 8px;
 }
 
 .post-card {
@@ -151,6 +184,8 @@ a > i {
 }
 
 .lower-half {
+  display: flex;
+  flex-direction: column;
   padding: 25px 25px 10px 25px;
 }
 
@@ -202,6 +237,16 @@ a > i {
   width: 100%;
 }
 
+.wide-spacing {
+  line-height: 1.5 !important;
+}
+
+.influencd {
+  background-color: #fe3353;
+  background-image: url(portfolio/Influencd2.png);
+  background-size: cover;
+}
+
 .echo {
   background-color: #ccb7e0;
   background-image: url(portfolio/echo.png);
@@ -237,7 +282,20 @@ a > i {
   color: inherit !important;
 }
 
+@media (max-width: 800px) {
+  .card-fullwidth {
+    flex-direction: column;
+    height: 20%;
+  }
+
+  .card-side {
+    border-bottom-left-radius: 0px;
+    border-top-right-radius: 8px;
+  }
+}
+
 @media (prefers-color-scheme: dark) {
+
   body {
     background: #1a1a1a;
     color: white;
@@ -259,9 +317,17 @@ a > i {
     background-color: #0f0f0f;
   }
 
+  .card-miniheight {
+    background-color: #0f0f0f;
+  }
+
   .lower-half > p {
     color: white;
   } 
+
+  .section {
+    /* background-image: linear-gradient(0deg, rgba(26,26,26,1) 0%, rgba(45,45,45,1) 100%); */
+  }
 }
 
 /*! normalize.css v8.0.1 | MIT License | github.com/necolas/normalize.css */
