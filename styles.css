@@ -254,6 +254,7 @@ a > i {
   background-color: #fe3353;
   background-image: url(portfolio/Influencd2.png);
   background-size: cover;
+  background-position: center center;
 }
 
 .echo {
