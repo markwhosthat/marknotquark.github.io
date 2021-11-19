@@ -183,6 +183,7 @@ a > i {
 
 .card-fullwidth-side {
   flex-grow: 1;
+  overflow: hidden;
 }
 
 .card-side {
