@@ -315,7 +315,7 @@ a > i {
 @media (max-width: 800px) {
   .card-fullwidth {
     flex-direction: column;
-    height: 500px;
+    height: 700px;
   }
 
   .card-side {
