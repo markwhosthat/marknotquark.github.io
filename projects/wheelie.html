@@ -5,9 +5,28 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <title>Wheelie Bin Scale Visualiser</title>
     <style>
-        body { margin: 0; overflow: hidden; background-color: #87CEEB; font-family: 'Segoe UI', -apple-system, sans-serif; }
-        canvas { display: block; }
+        body { 
+            margin: 0; 
+            overflow: hidden; 
+            background-color: #87CEEB; 
+            font-family: 'Segoe UI', -apple-system, sans-serif; 
+            height: 100vh; /* Essential for flex layout */
+            width: 100vw;
+            display: block; /* Default for desktop */
+        }
         
+        canvas { display: block; width: 100%; height: 100%; outline: none; }
+        
+        /* Container for the 3D scene */
+        #canvas-container {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+        }
+
         #ui-container {
             position: absolute;
             top: 20px;
@@ -21,6 +40,7 @@
             min-width: 280px;
             user-select: none;
             color: #1a472a;
+            z-index: 10;
             transition: all 0.3s ease;
             max-height: 90vh;
             overflow-y: auto;
@@ -124,18 +144,31 @@
 
         /* --- MOBILE STYLES --- */
         @media (max-width: 600px) {
-            #ui-container {
-                top: auto;
-                bottom: 0;
-                left: 0;
-                right: 0;
+            body {
+                display: flex;
+                flex-direction: column; /* Stack layout */
+            }
+
+            #canvas-container {
+                position: relative; /* Part of the flow now */
+                flex: 1; /* Take up all remaining space above UI */
                 width: 100%;
-                min-width: 0;
+                min-height: 0; /* Allow shrinking */
+            }
+
+            #ui-container {
+                position: relative; /* Part of the flow */
+                top: auto;
+                left: auto;
+                width: 100%;
+                flex-shrink: 0; /* Do not shrink */
+                
                 border-radius: 20px 20px 0 0;
-                padding: 20px 24px 30px 24px; /* Extra padding at bottom for safe areas */
+                padding: 20px 24px 30px 24px;
                 box-sizing: border-box;
                 border: none;
                 box-shadow: 0 -5px 30px rgba(0,0,0,0.15);
+                max-height: 50vh; /* Don't let UI take more than half screen */
             }
             
             h2 { 
@@ -155,7 +188,6 @@
             .big-number { font-size: 24px; }
             .sub-text { font-size: 13px; }
             
-            /* Make touch targets slightly larger */
             input[type=range] { height: 20px; margin: 10px 0; }
         }
     </style>
@@ -164,6 +196,8 @@
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
 </head>
 <body>
+
+<div id="canvas-container"></div>
 
 <div id="ui-container">
     <h2>Wheelie Bin Flow Simulator</h2>
@@ -210,28 +244,28 @@
     const BIN_SPACING = 0.9; 
     const BIN_HEIGHT = 1.1;
     const GRID_RADIUS = 70; // 140m Diameter
+    const canvasContainer = document.getElementById('canvas-container');
 
     // --- 2. SCENE SETUP ---
     const scene = new THREE.Scene();
     scene.background = new THREE.Color(COLORS.sky);
     scene.fog = new THREE.Fog(COLORS.sky, 100, 600);
 
-    const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 1, 15000);
-    
-    // ** MODIFICATION: Super close start **
+    const camera = new THREE.PerspectiveCamera(45, canvasContainer.clientWidth / canvasContainer.clientHeight, 1, 15000);
     camera.position.set(5, 5, 5); 
     
-    // Camera Animation State
     const targetCameraPos = new THREE.Vector3(5, 5, 5);
     const targetLookAt = new THREE.Vector3(0, 0.5, 0);
     let shouldAutoPan = false;
 
     const renderer = new THREE.WebGLRenderer({ antialias: true });
-    renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.setSize(canvasContainer.clientWidth, canvasContainer.clientHeight);
     renderer.shadowMap.enabled = true;
     renderer.shadowMap.type = THREE.PCFSoftShadowMap;
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2)); // optimize for mobile
-    document.body.appendChild(renderer.domElement);
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    
+    // Append to container instead of body
+    canvasContainer.appendChild(renderer.domElement);
 
     const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
     scene.add(ambientLight);
@@ -705,9 +739,11 @@
     }
     
     window.addEventListener('resize', () => {
-        camera.aspect = window.innerWidth / window.innerHeight;
+        const width = canvasContainer.clientWidth;
+        const height = canvasContainer.clientHeight;
+        camera.aspect = width / height;
         camera.updateProjectionMatrix();
-        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setSize(width, height);
     });
 
     animate();
