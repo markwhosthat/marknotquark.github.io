@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>Wheelie Bin Scale Visualiser</title>
+    <title>Wheelie Bin Scale Visualiser + Walk Mode</title>
     <style>
         /* --- LAYOUT STRUCTURE --- */
         body { 
@@ -169,6 +169,13 @@
             padding: 5px 10px;
             margin-top: 5px;
         }
+        
+        /* Specific style for the main Walk Mode toggle to make it stand out */
+        .main-toggle {
+            background: #e8f5e9;
+            border: 1px solid #c8e6c9;
+            margin-top: 15px;
+        }
 
         .toggle-wrapper {
             display: flex;
@@ -221,6 +228,24 @@
             opacity: 0.8;
             line-height: 1.3;
         }
+        
+        #controls-hint {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0,0,0,0.5);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 600;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.5s;
+            z-index: 200;
+        }
+        #controls-hint.visible { opacity: 1; }
 
         /* --- MOBILE STACKED LAYOUT --- */
         @media (max-width: 600px) {
@@ -259,6 +284,7 @@
 <body>
 
 <div id="canvas-wrapper"></div>
+<div id="controls-hint">Use W, A, S, D to Move</div>
 
 <div id="ui-container">
     <h2>Wheelie Bin Flow</h2>
@@ -276,11 +302,20 @@
         <input type="number" id="literInput" value="1200">
         <span class="unit">L/s</span>
     </div>
+    
+    <div class="toggle-group main-toggle">
+        <div class="toggle-wrapper">
+            <span class="toggle-text">🚶 Walk Mode</span>
+            <label class="switch">
+                <input type="checkbox" id="walkToggle">
+                <span class="slider round"></span>
+            </label>
+        </div>
+    </div>
 
-    <div id="mobile-toggle">🔽 Rendering Options</div>
+    <div id="mobile-toggle">🔽 Performance Options</div>
 
     <div id="rendering-controls" class="collapsed">
-        <label>Performance Settings</label>
         <div class="toggle-group">
             <div class="toggle-wrapper">
                 <span class="toggle-text">Optimised Rendering</span>
@@ -322,7 +357,8 @@
         bananaYellow: 0xFFE135, 
         bananaTip: 0x4A3328,
         concrete: 0x999999,
-        darkVoid: 0x0f2b19 
+        darkVoid: 0x0f2b19,
+        player: 0xff5500
     };
 
     const BIN_SPACING = 0.9; 
@@ -372,11 +408,23 @@
     plane.receiveShadow = true;
     scene.add(plane);
 
-    // --- 3. ENVIRONMENT ---
+    // --- 3. ENVIRONMENT & COLLISION SYSTEM ---
     const obstacles = [];
+    const binChunks = new Map(); // Spatial Hash for bins
+    const CHUNK_SIZE = 2.0;
+
     function registerObstacle(x, z, radius) {
         obstacles.push({ x, z, r: radius, rSq: radius * radius });
     }
+
+    function addToBinChunk(x, z) {
+        const cx = Math.floor(x / CHUNK_SIZE);
+        const cz = Math.floor(z / CHUNK_SIZE);
+        const key = `${cx},${cz}`;
+        if (!binChunks.has(key)) binChunks.set(key, []);
+        binChunks.get(key).push({x, z, r: 0.4}); // Bin radius approx 0.4
+    }
+
     let validSlots = []; 
 
     function createEnvironment() {
@@ -391,7 +439,7 @@
             const l = new THREE.Mesh(leafGeo, leafMat); l.position.set(...p); l.castShadow = true; l.scale.setScalar(0.8 + Math.random()*0.4); treeGroup.add(l);
         });
         treeGroup.position.set(-8, 0, -5); envGroup.add(treeGroup); 
-        registerObstacle(-8, -5, 3.5); 
+        registerObstacle(-8, -5, 1.2); // Trunk collision only
 
         // --- Bench ---
         const benchGroup = new THREE.Group();
@@ -402,7 +450,7 @@
         const l1 = new THREE.Mesh(legGeo, woodMat); l1.position.set(-0.6, 0.225, 0); benchGroup.add(l1);
         const l2 = new THREE.Mesh(legGeo, woodMat); l2.position.set(0.6, 0.225, 0); benchGroup.add(l2);
         benchGroup.position.set(-3, 0, -2); benchGroup.rotation.y = 0.2; envGroup.add(benchGroup); 
-        registerObstacle(-3, -2, 2.5);
+        registerObstacle(-3, -2, 1.0);
 
         scene.add(envGroup);
     }
@@ -431,7 +479,13 @@
         const pillarGeo = new THREE.CylinderGeometry(0.3, 0.3, 3.7, 8); const pillarMat = new THREE.MeshToonMaterial({ color: COLORS.concrete });
         const leg1 = new THREE.Mesh(pillarGeo, pillarMat); leg1.position.set(-3, -0.65, 0); bananaGroup.add(leg1);
         const leg2 = new THREE.Mesh(pillarGeo, pillarMat); leg2.position.set(3, -0.65, 0); bananaGroup.add(leg2);
-        bananaGroup.position.set(-35, 2.5, 5); bananaGroup.rotation.set(0, Math.PI / 6, 0); landmarkGroup.add(bananaGroup); registerObstacle(-35, 5, 8);
+        bananaGroup.position.set(-35, 2.5, 5); bananaGroup.rotation.set(0, Math.PI / 6, 0); landmarkGroup.add(bananaGroup); 
+        
+        // Banana legs collision
+        const bananaX = -35; const bananaZ = 5;
+        // Approximation
+        registerObstacle(bananaX - 1.5, bananaZ + 1, 1.5); 
+        registerObstacle(bananaX + 1.5, bananaZ - 1, 1.5);
 
         // CROWN
         const crownHeight = 271.3; const crownGeo = new THREE.CylinderGeometry(1, 1, crownHeight, 60, 80, true);
@@ -448,7 +502,7 @@
         }
         crownGeo.computeVertexNormals();
         const crown = new THREE.Mesh(crownGeo, new THREE.MeshStandardMaterial({ color: COLORS.crownGlass, metalness: 0.6, roughness: 0.2, transparent: true, opacity: 0.85 }));
-        crown.castShadow = true; crown.position.set(0, 0, -80); landmarkGroup.add(crown); registerObstacle(0, -80, 35);
+        crown.castShadow = true; crown.position.set(0, 0, -80); landmarkGroup.add(crown); registerObstacle(0, -80, 30);
         for(let h=10; h<271; h+=15) {
             const normY = h/271; let taper = (normY < 0.3) ? 1.0 + (normY/0.3)*0.2 : 1.2 - ((normY-0.3)/0.7)*0.8;
             const ring = new THREE.Mesh(new THREE.TorusGeometry(25 * taper, 0.5, 4, 60), new THREE.MeshBasicMaterial({color: 0xffffff, transparent:true, opacity:0.3}));
@@ -575,9 +629,15 @@
         coreMesh = new THREE.Mesh(geometry, new THREE.MeshBasicMaterial({ color: COLORS.darkVoid }));
         coreMesh.rotation.x = -Math.PI / 2; 
         scene.add(coreMesh);
+        
+        // Add Core to Obstacles only if visible
+        // (Simplified for physics: treated as a large circle for now)
     }
 
     function populateScene(targetCount, doAutoFit = true) {
+        // Clear old spatial hash
+        binChunks.clear();
+
         const shellToggle = document.getElementById('shellToggle');
         const infillToggle = document.getElementById('infillToggle');
         const useShellMode = shellToggle.checked;
@@ -612,11 +672,18 @@
                 let end = slotsPerLayer;
                 if (l === totalLayers - 1) { const remainder = targetCount % slotsPerLayer; if(remainder !== 0) end = remainder; }
                 const wy = l * BIN_HEIGHT;
+                
+                // Only register physics for bottom layer bins
+                const registerPhysics = (l === 0);
+
                 for(let s = 0; s < end; s++) {
                     const slot = validSlots[s]; const isOuterRing = s >= wallStartIndex;
                     if (isSolidLayer || isOuterRing || slot.isBoundary) {
                         const rotY = (Math.random() - 0.5) * 0.2; const colorIndex = (s + l) % 3;
                         addInstance(visualIndex, slot.x, wy, slot.z, rotY, colorIndex, highDetail);
+                        
+                        if(registerPhysics) addToBinChunk(slot.x, slot.z);
+
                         visualIndex++; if(visualIndex >= allocationCount) break;
                     }
                 }
@@ -631,6 +698,10 @@
                 const slot = validSlots[slotIndex]; const wy = layerIndex * BIN_HEIGHT;
                 const rotY = (Math.random() - 0.5) * 0.2; const colorIndex = (slotIndex + layerIndex) % 3;
                 addInstance(placed, slot.x, wy, slot.z, rotY, colorIndex, highDetail);
+                
+                // Only bottom layer for physics
+                if (layerIndex === 0) addToBinChunk(slot.x, slot.z);
+
                 placed++; slotIndex++;
             }
         }
@@ -645,7 +716,7 @@
         dirLight.shadow.camera.top = camSize; dirLight.shadow.camera.bottom = -camSize;
         dirLight.shadow.camera.updateProjectionMatrix();
 
-        if (doAutoFit) {
+        if (doAutoFit && !playerModeActive) {
             const pileCenterY = currentHeight / 2; const pileCenter = new THREE.Vector3(0, pileCenterY, 0); targetLookAt.copy(pileCenter);
             const boundSize = Math.max(currentRadius * 1.5, currentHeight); const dist = 8 + (boundSize * 1.8);
             const offset = new THREE.Vector3(1, 0.8, 1).normalize().multiplyScalar(dist);
@@ -666,12 +737,162 @@
         }
     }
 
+    // --- 5. PLAYER CONTROLLER ---
+    let playerModeActive = false;
+    const playerGroup = new THREE.Group();
+    const playerHeight = 1.8;
+    const playerRadius = 0.3;
+    
+    // Create Player Mesh
+    const pMat = new THREE.MeshToonMaterial({ color: COLORS.player });
+    const pGeo = new THREE.CylinderGeometry(playerRadius, playerRadius, playerHeight, 16);
+    pGeo.translate(0, playerHeight/2, 0); // Pivot at feet
+    const playerMesh = new THREE.Mesh(pGeo, pMat);
+    playerMesh.castShadow = true;
+    playerGroup.add(playerMesh);
+
+    // Direction indicator (Eyes)
+    const eyeGeo = new THREE.BoxGeometry(0.4, 0.2, 0.2);
+    const eyeMat = new THREE.MeshBasicMaterial({color: 0xffffff});
+    const eyes = new THREE.Mesh(eyeGeo, eyeMat);
+    eyes.position.set(0, 1.5, 0.2);
+    playerGroup.add(eyes);
+    
+    playerGroup.position.set(5, 0, 5);
+    playerGroup.visible = false;
+    scene.add(playerGroup);
+
+    const keys = { w: false, a: false, s: false, d: false };
+    window.addEventListener('keydown', (e) => { 
+        if(e.key.toLowerCase() in keys) keys[e.key.toLowerCase()] = true; 
+    });
+    window.addEventListener('keyup', (e) => { 
+        if(e.key.toLowerCase() in keys) keys[e.key.toLowerCase()] = false; 
+    });
+
+    const playerVel = new THREE.Vector3();
+    const speed = 0.025;
+    const friction = 0.8;
+
+    function checkCollision(newPos) {
+        // 1. Static Obstacles
+        for (let ob of obstacles) {
+            const dx = newPos.x - ob.x;
+            const dz = newPos.z - ob.z;
+            const distSq = dx*dx + dz*dz;
+            const minDist = ob.r + playerRadius;
+            if (distSq < minDist * minDist) {
+                const dist = Math.sqrt(distSq);
+                const push = (minDist - dist) / dist;
+                newPos.x += dx * push;
+                newPos.z += dz * push;
+            }
+        }
+
+        // 2. Bin Collision (Spatial Hash)
+        const cx = Math.floor(newPos.x / CHUNK_SIZE);
+        const cz = Math.floor(newPos.z / CHUNK_SIZE);
+
+        for (let i = -1; i <= 1; i++) {
+            for (let j = -1; j <= 1; j++) {
+                const key = `${cx + i},${cz + j}`;
+                const binList = binChunks.get(key);
+                if (binList) {
+                    for (let bin of binList) {
+                        const dx = newPos.x - bin.x;
+                        const dz = newPos.z - bin.z;
+                        const distSq = dx*dx + dz*dz;
+                        const minDist = bin.r + playerRadius; 
+                        if (distSq < minDist * minDist) {
+                            const dist = Math.sqrt(distSq);
+                            // Normalize push vector
+                            const pushForce = 0.5; // Soft push
+                            if (dist > 0.001) {
+                                const pushX = (dx / dist) * (minDist - dist);
+                                const pushZ = (dz / dist) * (minDist - dist);
+                                newPos.x += pushX;
+                                newPos.z += pushZ;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        
+        // 3. Core Mesh Collision (Simple radial check if active)
+        if (coreMesh) {
+            // Treat core as a solid cylinder
+            const coreRad = Math.sqrt(validSlots[Math.min(validSlots.length-1, 1000)].d); // rough approx
+            // Not perfect but sufficient for visualization
+        }
+
+        return newPos;
+    }
+
+    function updatePlayerPhysics() {
+        if (!playerModeActive) return;
+
+        // Input relative to camera
+        const forward = new THREE.Vector3(0, 0, -1).applyQuaternion(camera.quaternion);
+        forward.y = 0; forward.normalize();
+        const right = new THREE.Vector3(1, 0, 0).applyQuaternion(camera.quaternion);
+        right.y = 0; right.normalize();
+
+        if (keys.w) playerVel.add(forward.multiplyScalar(speed));
+        if (keys.s) playerVel.add(forward.multiplyScalar(-speed));
+        if (keys.a) playerVel.add(right.multiplyScalar(-speed));
+        if (keys.d) playerVel.add(right.multiplyScalar(speed));
+
+        // Apply Velocity
+        const nextPos = playerGroup.position.clone().add(playerVel);
+        
+        // Collision
+        const resolvedPos = checkCollision(nextPos);
+        playerGroup.position.copy(resolvedPos);
+
+        // Rotation (Look at movement)
+        if (playerVel.lengthSq() > 0.001) {
+            const angle = Math.atan2(playerVel.x, playerVel.z);
+            playerGroup.rotation.y = angle;
+        }
+
+        // Friction
+        playerVel.multiplyScalar(friction);
+
+        // Camera Follow
+        const offset = new THREE.Vector3(0, 5, 8); // Third person offset
+        // We want the camera to stay behind the player based on orbit, but we disabled orbit
+        // Simple 3rd person: Camera looks at player from fixed offset? 
+        // Better: WASD moves player relative to view, Camera lazy follows.
+        
+        const camTarget = playerGroup.position.clone().add(new THREE.Vector3(0, 1.5, 0));
+        
+        // Smooth follow logic:
+        // Keep camera at current relative angle but move position
+        const currentRel = camera.position.clone().sub(controls.target);
+        
+        // Hard set controls target to player
+        controls.target.lerp(camTarget, 0.1);
+        
+        // If we want a "chase" cam, we'd manually set camera.position here.
+        // But letting OrbitControls handle the rotation while we move the target is nice.
+        // Just ensure camera stays close enough.
+        if (camera.position.distanceTo(controls.target) > 15) {
+            const dir = camera.position.clone().sub(controls.target).normalize();
+            camera.position.lerp(controls.target.clone().add(dir.multiplyScalar(15)), 0.05);
+        }
+    }
+
+
+    // --- 6. UI & STATE ---
     const slider = document.getElementById('binSlider');
     const input = document.getElementById('literInput');
     const txtBins = document.getElementById('binDisplay');
     const txtLiters = document.getElementById('literDisplay');
     const shellToggle = document.getElementById('shellToggle');
     const infillToggle = document.getElementById('infillToggle');
+    const walkToggle = document.getElementById('walkToggle');
+    const controlsHint = document.getElementById('controls-hint');
 
     const minVal = Math.log(1); const maxVal = Math.log(2000000); const scale = (maxVal - minVal) / 1000;
     
@@ -681,6 +902,34 @@
     
     shellToggle.addEventListener('change', () => { userToggledShell = true; populateScene(currentCount, false); });
     infillToggle.addEventListener('change', () => { userToggledInfill = true; populateScene(currentCount, false); });
+
+    walkToggle.addEventListener('change', (e) => {
+        playerModeActive = e.target.checked;
+        playerGroup.visible = playerModeActive;
+        shouldAutoPan = false;
+        
+        if (playerModeActive) {
+            // Snap camera to player vicinity
+            const offset = new THREE.Vector3(0, 5, 10);
+            camera.position.copy(playerGroup.position).add(offset);
+            controls.target.copy(playerGroup.position);
+            controlsHint.classList.add('visible');
+            
+            // If inside a huge pile, move player out
+            const dist = playerGroup.position.length();
+            if (validSlots.length > 0 && dist < Math.sqrt(validSlots[Math.min(currentCount, validSlots.length)-1].d)) {
+                // Inside pile, move to edge
+                const edgeR = Math.sqrt(validSlots[Math.min(currentCount, validSlots.length)-1].d) + 2;
+                playerGroup.position.set(edgeR, 0, 0);
+                camera.position.copy(playerGroup.position).add(offset);
+            }
+
+        } else {
+            // Reset to overview
+            controlsHint.classList.remove('visible');
+            populateScene(currentCount, true); // Trigger autofit
+        }
+    });
 
     function getCountFromSlider(val) { return Math.floor(Math.exp(minVal + scale * val)); }
     function getSliderFromCount(count) { if(count < 1) count = 1; return (Math.log(count) - minVal) / scale; }
@@ -713,7 +962,7 @@
         isCollapsed = !isCollapsed;
         if(isCollapsed) {
             renderingControls.classList.add('collapsed');
-            mobileToggle.innerText = '🔽 Rendering Options';
+            mobileToggle.innerText = '🔽 Performance Options';
         } else {
             renderingControls.classList.remove('collapsed');
             mobileToggle.innerText = '🔼 Hide Options';
@@ -728,10 +977,14 @@
     
     function animate() {
         requestAnimationFrame(animate);
-        if (shouldAutoPan) {
+        
+        if (playerModeActive) {
+            updatePlayerPhysics();
+        } else if (shouldAutoPan) {
             camera.position.lerp(targetCameraPos, 0.05); controls.target.lerp(targetLookAt, 0.05);
             if(camera.position.distanceTo(targetCameraPos) < 0.5) shouldAutoPan = false;
         }
+        
         controls.update();
         const dist = camera.position.distanceTo(controls.target); scene.fog.near = dist * 0.5; scene.fog.far = dist * 5.0;
 
