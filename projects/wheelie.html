@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <title>Wheelie Bin Scale Visualiser</title>
     <style>
         body { margin: 0; overflow: hidden; background-color: #87CEEB; font-family: 'Segoe UI', -apple-system, sans-serif; }
@@ -21,6 +21,9 @@
             min-width: 280px;
             user-select: none;
             color: #1a472a;
+            transition: all 0.3s ease;
+            max-height: 90vh;
+            overflow-y: auto;
         }
 
         h2 {
@@ -118,6 +121,43 @@
             opacity: 0.8;
             line-height: 1.4;
         }
+
+        /* --- MOBILE STYLES --- */
+        @media (max-width: 600px) {
+            #ui-container {
+                top: auto;
+                bottom: 0;
+                left: 0;
+                right: 0;
+                width: 100%;
+                min-width: 0;
+                border-radius: 20px 20px 0 0;
+                padding: 20px 24px 30px 24px; /* Extra padding at bottom for safe areas */
+                box-sizing: border-box;
+                border: none;
+                box-shadow: 0 -5px 30px rgba(0,0,0,0.15);
+            }
+            
+            h2 { 
+                font-size: 16px; 
+                margin-bottom: 10px; 
+                text-align: center;
+            }
+
+            .display-group {
+                display: flex;
+                align-items: baseline;
+                justify-content: center;
+                gap: 8px;
+                margin-bottom: 15px;
+            }
+
+            .big-number { font-size: 24px; }
+            .sub-text { font-size: 13px; }
+            
+            /* Make touch targets slightly larger */
+            input[type=range] { height: 20px; margin: 10px 0; }
+        }
     </style>
     
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
@@ -190,6 +230,7 @@
     renderer.setSize(window.innerWidth, window.innerHeight);
     renderer.shadowMap.enabled = true;
     renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2)); // optimize for mobile
     document.body.appendChild(renderer.domElement);
 
     const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
