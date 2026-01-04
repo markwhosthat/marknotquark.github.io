@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>Wheelie Bin Scale Visualiser + Walk Mode</title>
+    <title>Wheelie Bin Scale Visualiser + Rain Calculator</title>
     <style>
         /* --- LAYOUT STRUCTURE --- */
         body { 
@@ -94,6 +94,22 @@
             margin-bottom: 4px;
         }
 
+        select {
+            width: 100%;
+            padding: 8px 10px;
+            border-radius: 8px;
+            border: 1px solid #ddd;
+            font-family: inherit;
+            font-weight: 600;
+            color: #333;
+            box-sizing: border-box;
+            font-size: 14px;
+            outline: none;
+            margin-bottom: 5px;
+            background-color: white;
+            cursor: pointer;
+        }
+
         input[type=range] { 
             width: 100%; 
             accent-color: #2E8B57; 
@@ -102,7 +118,7 @@
             margin-bottom: 5px;
         }
 
-        .input-wrapper { position: relative; margin-top: 5px; }
+        .input-wrapper { position: relative; margin-top: 5px; margin-bottom: 8px; }
 
         input[type=number] {
             width: 100%;
@@ -170,7 +186,6 @@
             margin-top: 5px;
         }
         
-        /* Specific style for the main Walk Mode toggle to make it stand out */
         .main-toggle {
             background: #e8f5e9;
             border: 1px solid #c8e6c9;
@@ -247,6 +262,9 @@
         }
         #controls-hint.visible { opacity: 1; }
 
+        /* Helpers for showing/hiding inputs */
+        .hidden { display: none; }
+
         /* --- MOBILE STACKED LAYOUT --- */
         @media (max-width: 600px) {
             #ui-container {
@@ -294,13 +312,38 @@
         <span id="literDisplay" class="sub-text">(1,200 L/s)</span>
     </div>
 
-    <label>Count (Logarithmic)</label>
-    <input type="range" id="binSlider" min="0" max="1000" value="10">
+    <label>Calculation Mode</label>
+    <select id="modeSelect">
+        <option value="direct">Direct Flow (L/s)</option>
+        <option value="rain">Rainfall Event (mm/hr)</option>
+    </select>
 
-    <label>Flow Rate</label>
-    <div class="input-wrapper">
-        <input type="number" id="literInput" value="1200">
-        <span class="unit">L/s</span>
+    <div id="directControls">
+        <label>Count (Logarithmic)</label>
+        <input type="range" id="binSlider" min="0" max="1000" value="10">
+
+        <label>Flow Rate</label>
+        <div class="input-wrapper">
+            <input type="number" id="literInput" value="1200">
+            <span class="unit">L/s</span>
+        </div>
+    </div>
+
+    <div id="rainControls" class="hidden">
+        <label>Rainfall Intensity</label>
+        <div class="input-wrapper">
+            <input type="number" id="rainMmInput" value="50">
+            <span class="unit">mm/hr</span>
+        </div>
+
+        <label>Catchment Area</label>
+        <div class="input-wrapper">
+            <input type="number" id="areaInput" value="5000">
+            <span class="unit">m²</span>
+        </div>
+        <div class="footer-note" style="margin-top:5px; border:none;">
+            1 mm of rain on 1 m² = 1 Liter.
+        </div>
     </div>
     
     <div class="toggle-group main-toggle">
@@ -629,9 +672,6 @@
         coreMesh = new THREE.Mesh(geometry, new THREE.MeshBasicMaterial({ color: COLORS.darkVoid }));
         coreMesh.rotation.x = -Math.PI / 2; 
         scene.add(coreMesh);
-        
-        // Add Core to Obstacles only if visible
-        // (Simplified for physics: treated as a large circle for now)
     }
 
     function populateScene(targetCount, doAutoFit = true) {
@@ -819,13 +859,6 @@
             }
         }
         
-        // 3. Core Mesh Collision (Simple radial check if active)
-        if (coreMesh) {
-            // Treat core as a solid cylinder
-            const coreRad = Math.sqrt(validSlots[Math.min(validSlots.length-1, 1000)].d); // rough approx
-            // Not perfect but sufficient for visualization
-        }
-
         return newPos;
     }
 
@@ -860,23 +893,9 @@
         playerVel.multiplyScalar(friction);
 
         // Camera Follow
-        const offset = new THREE.Vector3(0, 5, 8); // Third person offset
-        // We want the camera to stay behind the player based on orbit, but we disabled orbit
-        // Simple 3rd person: Camera looks at player from fixed offset? 
-        // Better: WASD moves player relative to view, Camera lazy follows.
-        
         const camTarget = playerGroup.position.clone().add(new THREE.Vector3(0, 1.5, 0));
-        
-        // Smooth follow logic:
-        // Keep camera at current relative angle but move position
-        const currentRel = camera.position.clone().sub(controls.target);
-        
-        // Hard set controls target to player
         controls.target.lerp(camTarget, 0.1);
         
-        // If we want a "chase" cam, we'd manually set camera.position here.
-        // But letting OrbitControls handle the rotation while we move the target is nice.
-        // Just ensure camera stays close enough.
         if (camera.position.distanceTo(controls.target) > 15) {
             const dir = camera.position.clone().sub(controls.target).normalize();
             camera.position.lerp(controls.target.clone().add(dir.multiplyScalar(15)), 0.05);
@@ -893,12 +912,20 @@
     const infillToggle = document.getElementById('infillToggle');
     const walkToggle = document.getElementById('walkToggle');
     const controlsHint = document.getElementById('controls-hint');
+    
+    // New Controls
+    const modeSelect = document.getElementById('modeSelect');
+    const directControls = document.getElementById('directControls');
+    const rainControls = document.getElementById('rainControls');
+    const rainMmInput = document.getElementById('rainMmInput');
+    const areaInput = document.getElementById('areaInput');
 
     const minVal = Math.log(1); const maxVal = Math.log(2000000); const scale = (maxVal - minVal) / 1000;
     
     let userToggledShell = false;
     let userToggledInfill = false;
     let currentCount = 10;
+    let currentMode = 'direct';
     
     shellToggle.addEventListener('change', () => { userToggledShell = true; populateScene(currentCount, false); });
     infillToggle.addEventListener('change', () => { userToggledInfill = true; populateScene(currentCount, false); });
@@ -909,25 +936,21 @@
         shouldAutoPan = false;
         
         if (playerModeActive) {
-            // Snap camera to player vicinity
             const offset = new THREE.Vector3(0, 5, 10);
             camera.position.copy(playerGroup.position).add(offset);
             controls.target.copy(playerGroup.position);
             controlsHint.classList.add('visible');
             
-            // If inside a huge pile, move player out
             const dist = playerGroup.position.length();
             if (validSlots.length > 0 && dist < Math.sqrt(validSlots[Math.min(currentCount, validSlots.length)-1].d)) {
-                // Inside pile, move to edge
                 const edgeR = Math.sqrt(validSlots[Math.min(currentCount, validSlots.length)-1].d) + 2;
                 playerGroup.position.set(edgeR, 0, 0);
                 camera.position.copy(playerGroup.position).add(offset);
             }
 
         } else {
-            // Reset to overview
             controlsHint.classList.remove('visible');
-            populateScene(currentCount, true); // Trigger autofit
+            populateScene(currentCount, true);
         }
     });
 
@@ -937,11 +960,14 @@
     function updateState(count, source) {
         if(count < 1) count = 1; if(count > 2000000) count = 2000000;
         currentCount = count;
+        
         const liters = count * 120;
         txtBins.innerText = `${count.toLocaleString()} ${count === 1 ? 'bin' : 'bins'}`;
         txtLiters.innerText = `(${liters.toLocaleString()} L/s)`;
-        if(source !== 'input') input.value = liters;
-        if(source !== 'slider') slider.value = getSliderFromCount(count);
+        
+        // Sync Inputs depending on who triggered the update
+        if (source !== 'input' && source !== 'rain') input.value = liters;
+        if (source !== 'slider') slider.value = getSliderFromCount(count);
         
         if (!userToggledShell) {
             shellToggle.checked = (count >= 60000);
@@ -950,8 +976,58 @@
         populateScene(count, source !== 'init');
     }
 
-    slider.addEventListener('input', (e) => { updateState(getCountFromSlider(parseInt(e.target.value)), 'slider'); });
-    input.addEventListener('change', (e) => { const val = parseInt(e.target.value); if(!val) return; updateState(Math.ceil(val / 120), 'input'); });
+    function recalculateRain() {
+        const mm = parseFloat(rainMmInput.value) || 0;
+        const area = parseFloat(areaInput.value) || 0;
+        
+        // 1mm of rain on 1m^2 = 1 Liter.
+        // Total Liters = mm * area.
+        // This usually happens over an hour.
+        const totalLitersPerHour = mm * area;
+        
+        // Convert to Liters Per Second (L/s)
+        const lps = totalLitersPerHour / 3600;
+        
+        // Convert L/s to Bins (1 bin unit = 120 L/s in this vis)
+        // Wait, standard visualizer logic: 10 bins = 1200 L/s. So 1 bin = 120 L/s.
+        const binCount = Math.max(1, Math.ceil(lps / 120));
+        
+        updateState(binCount, 'rain');
+    }
+
+    slider.addEventListener('input', (e) => { 
+        if(currentMode === 'rain') {
+            // If user drags slider in rain mode, switch back to direct?
+            // Or just update display but keep rain mode UI?
+            // Let's force switch to direct for clarity or just update visualization
+            modeSelect.value = 'direct';
+            toggleMode();
+        }
+        updateState(getCountFromSlider(parseInt(e.target.value)), 'slider'); 
+    });
+    
+    input.addEventListener('change', (e) => { 
+        const val = parseInt(e.target.value); 
+        if(!val) return; 
+        updateState(Math.ceil(val / 120), 'input'); 
+    });
+
+    rainMmInput.addEventListener('input', recalculateRain);
+    areaInput.addEventListener('input', recalculateRain);
+
+    function toggleMode() {
+        currentMode = modeSelect.value;
+        if (currentMode === 'direct') {
+            directControls.classList.remove('hidden');
+            rainControls.classList.add('hidden');
+            updateState(getCountFromSlider(parseInt(slider.value)), 'slider');
+        } else {
+            directControls.classList.add('hidden');
+            rainControls.classList.remove('hidden');
+            recalculateRain();
+        }
+    }
+    modeSelect.addEventListener('change', toggleMode);
 
     // --- MOBILE TOGGLE LOGIC ---
     const mobileToggle = document.getElementById('mobile-toggle');
