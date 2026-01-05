@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>Wheelie Bin Scale Visualiser + Rain Calculator</title>
+    <title>Wheelie Bin Scale Visualiser</title>
     <style>
         /* --- LAYOUT STRUCTURE --- */
         body { 
@@ -262,7 +262,6 @@
         }
         #controls-hint.visible { opacity: 1; }
 
-        /* Helpers for showing/hiding inputs */
         .hidden { display: none; }
 
         /* --- MOBILE STACKED LAYOUT --- */
@@ -979,27 +978,14 @@
     function recalculateRain() {
         const mm = parseFloat(rainMmInput.value) || 0;
         const area = parseFloat(areaInput.value) || 0;
-        
-        // 1mm of rain on 1m^2 = 1 Liter.
-        // Total Liters = mm * area.
-        // This usually happens over an hour.
         const totalLitersPerHour = mm * area;
-        
-        // Convert to Liters Per Second (L/s)
         const lps = totalLitersPerHour / 3600;
-        
-        // Convert L/s to Bins (1 bin unit = 120 L/s in this vis)
-        // Wait, standard visualizer logic: 10 bins = 1200 L/s. So 1 bin = 120 L/s.
         const binCount = Math.max(1, Math.ceil(lps / 120));
-        
         updateState(binCount, 'rain');
     }
 
     slider.addEventListener('input', (e) => { 
         if(currentMode === 'rain') {
-            // If user drags slider in rain mode, switch back to direct?
-            // Or just update display but keep rain mode UI?
-            // Let's force switch to direct for clarity or just update visualization
             modeSelect.value = 'direct';
             toggleMode();
         }
@@ -1045,7 +1031,21 @@
         }
     });
 
-    updateState(10, 'init');
+    // --- URL PARAMETER HANDLING ---
+    const urlParams = new URLSearchParams(window.location.search);
+    const flowParam = urlParams.get('flow'); // e.g. ?flow=5000
+
+    let initialBinCount = 10;
+
+    if (flowParam) {
+        const requestedFlow = parseFloat(flowParam);
+        if (!isNaN(requestedFlow) && requestedFlow > 0) {
+            // 1 bin = 120 L/s. Round up to ensure we cover the flow.
+            initialBinCount = Math.max(1, Math.ceil(requestedFlow / 120));
+        }
+    }
+
+    updateState(initialBinCount, 'init');
 
     const controls = new THREE.OrbitControls(camera, renderer.domElement);
     controls.enableDamping = true; controls.dampingFactor = 0.05; controls.target.set(0, 0.5, 0);
