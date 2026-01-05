@@ -15,6 +15,7 @@
             flex-direction: column;
             height: 100vh; 
             width: 100vw;
+            transition: background-color 0.8s ease; /* Slower transition for day/night cycle */
         }
         
         #canvas-wrapper {
@@ -24,7 +25,6 @@
             min-height: 0; 
             overflow: hidden;
             z-index: 1;
-            background-color: #87CEEB; 
         }
 
         canvas { 
@@ -34,7 +34,7 @@
             outline: none;
         }
         
-        /* --- UI STYLING --- */
+        /* --- UI STYLING (Default Light) --- */
         #ui-container {
             position: absolute; 
             top: 20px;
@@ -54,9 +54,8 @@
             z-index: 100;
         }
 
-        /* --- PRESENTATION MODE FOOTNOTE --- */
         #presentation-note {
-            display: none; /* Hidden by default */
+            display: none; 
             position: absolute;
             bottom: 20px;
             right: 20px;
@@ -68,15 +67,84 @@
             pointer-events: none;
             z-index: 100;
             border: 1px solid rgba(255,255,255,0.5);
-            text-align: center;
+            text-align: right;
             flex-direction: column;
-            align-items: center;
+            align-items: flex-end;
+            color: #1a472a;
+            transition: background 0.3s, color 0.3s;
         }
+
+        /* --- THEME TOGGLE BUTTON --- */
+        #theme-toggle {
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(4px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+            border: 1px solid rgba(0,0,0,0.1);
+            cursor: pointer;
+            z-index: 200;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            transition: transform 0.2s, background 0.3s;
+            user-select: none;
+        }
+        
+        #theme-toggle:hover {
+            transform: scale(1.1);
+        }
+
+        /* --- DARK MODE CLASSES (Applied via JS) --- */
+        body.dark-mode { background-color: #050510; }
+        
+        body.dark-mode #ui-container, 
+        body.dark-mode #presentation-note {
+            background: rgba(30, 30, 40, 0.85);
+            color: #e0e0e0;
+            border-color: rgba(255,255,255,0.1);
+            box-shadow: 0 10px 40px rgba(0,0,0,0.4);
+        }
+
+        body.dark-mode #theme-toggle {
+            background: rgba(40, 40, 50, 0.9);
+            color: #ffd700;
+            border-color: rgba(255,255,255,0.2);
+        }
+        
+        body.dark-mode h2 { border-bottom-color: rgba(255,255,255,0.1) !important; color: #fff !important; }
+        body.dark-mode .big-number, body.dark-mode .pres-bins { color: #ffffff !important; }
+        body.dark-mode .sub-text, body.dark-mode .pres-flow { color: #aaa !important; }
+        body.dark-mode label, body.dark-mode .pres-label { color: #999 !important; }
+        
+        body.dark-mode select, 
+        body.dark-mode input[type=number], 
+        body.dark-mode input[type=text] {
+            background-color: #2a2a35 !important;
+            color: #ffffff !important;
+            border-color: #555 !important;
+        }
+        
+        body.dark-mode .toggle-group { background: rgba(255,255,255,0.05) !important; }
+        body.dark-mode .toggle-text { color: #ddd !important; }
+        
+        body.dark-mode .main-toggle {
+            background: rgba(46, 139, 87, 0.2) !important;
+            border-color: rgba(46, 139, 87, 0.4) !important;
+        }
+        
+        body.dark-mode .toggle-wrapper { border-bottom-color: rgba(255,255,255,0.1) !important; }
+        body.dark-mode .footer-note { border-top-color: rgba(255,255,255,0.1) !important; color: #888 !important; }
+        body.dark-mode #mobile-toggle:hover { background: rgba(255,255,255,0.05) !important; }
 
         .pres-bins {
             font-size: 26px;
             font-weight: 800;
-            color: #1a472a;
             display: block;
             line-height: 1;
             margin-bottom: 4px;
@@ -85,7 +153,6 @@
         .pres-flow {
             font-size: 15px;
             font-weight: 600;
-            color: #555;
             display: block;
             margin-bottom: 8px;
         }
@@ -94,7 +161,6 @@
             font-size: 10px;
             text-transform: uppercase;
             letter-spacing: 1px;
-            color: #888;
             font-weight: 700;
             border-top: 2px solid rgba(0,0,0,0.1);
             padding-top: 6px;
@@ -119,13 +185,11 @@
             font-size: 28px;
             font-weight: 800;
             display: block;
-            color: #1a472a;
             line-height: 1.1;
         }
 
         .sub-text {
             font-size: 14px;
-            color: #666;
             font-weight: 500;
             margin-top: 2px;
             display: block;
@@ -134,7 +198,6 @@
         label { 
             font-size: 11px; 
             font-weight: 700; 
-            color: #888; 
             text-transform: uppercase; 
             letter-spacing: 1px;
             display: block;
@@ -249,7 +312,7 @@
         }
         .toggle-wrapper:last-child { border-bottom: none; }
 
-        .toggle-text { font-size: 12px; font-weight: 700; color: #1a472a; }
+        .toggle-text { font-size: 12px; font-weight: 700; }
 
         .switch {
             position: relative;
@@ -327,7 +390,6 @@
                 box-shadow: 0 -5px 20px rgba(0,0,0,0.05);
                 flex-shrink: 0; 
                 z-index: 10;
-                background: #fff;
             }
             
             h2 { font-size: 15px; margin-bottom: 8px; }
@@ -348,6 +410,14 @@
             }
             .pres-bins { font-size: 20px; }
             .pres-flow { font-size: 12px; }
+            
+            #theme-toggle {
+                bottom: 15px;
+                left: 15px;
+                width: 36px;
+                height: 36px;
+                font-size: 16px;
+            }
         }
     </style>
     
@@ -358,6 +428,8 @@
 
 <div id="canvas-wrapper"></div>
 <div id="controls-hint">Use W, A, S, D to Move</div>
+
+<button id="theme-toggle" title="Toggle Dark Mode">☀️</button>
 
 <div id="presentation-note">
     <span class="pres-bins" id="pres-bin-val">0 bins</span>
@@ -462,7 +534,14 @@
         bananaTip: 0x4A3328,
         concrete: 0x999999,
         darkVoid: 0x0f2b19,
-        player: 0xff5500
+        player: 0xff5500,
+        metal: 0x2c3e50,
+        glass: 0xadd8e6
+    };
+
+    const NIGHT_COLORS = {
+        sky: 0x050510,
+        moonLight: 0xaaccff
     };
 
     const BIN_SPACING = 0.9; 
@@ -482,7 +561,12 @@
     const targetCameraPos = new THREE.Vector3(5, 5, 5);
     const targetLookAt = new THREE.Vector3(0, 0.5, 0);
     let shouldAutoPan = false;
-    let isInstantSnap = false; // Used for flow mode initial load
+    let isInstantSnap = false; 
+    
+    // Globals for Lamp Control
+    let lampLight;
+    let lampBulbMat;
+    let lampGlassMat;
 
     const renderer = new THREE.WebGLRenderer({ antialias: true });
     renderer.setSize(canvasWrapper.clientWidth, canvasWrapper.clientHeight);
@@ -513,6 +597,65 @@
     plane.receiveShadow = true;
     scene.add(plane);
 
+    // --- DARK MODE LOGIC ---
+    const themeToggleBtn = document.getElementById('theme-toggle');
+    const systemDarkMode = window.matchMedia('(prefers-color-scheme: dark)');
+    
+    let isDarkMode = systemDarkMode.matches;
+
+    function applyTheme(isDark) {
+        isDarkMode = isDark;
+        if (isDark) {
+            // Night Mode
+            document.body.classList.add('dark-mode');
+            themeToggleBtn.innerText = '🌙';
+            scene.background.setHex(NIGHT_COLORS.sky);
+            scene.fog.color.setHex(NIGHT_COLORS.sky);
+            ambientLight.intensity = 0.2; // Dim ambient
+            dirLight.color.setHex(NIGHT_COLORS.moonLight); // Moon color
+            dirLight.intensity = 0.5; // Dim moon
+            
+            // Turn on Lamp
+            if(lampLight && lampBulbMat && lampGlassMat) {
+                lampLight.intensity = 1.2;
+                lampBulbMat.emissive.setHex(0xffaa00);
+                lampBulbMat.emissiveIntensity = 1.0;
+                lampGlassMat.opacity = 0.8;
+                lampGlassMat.emissive.setHex(0x553300); // Slight warm glow on glass
+            }
+        } else {
+            // Day Mode
+            document.body.classList.remove('dark-mode');
+            themeToggleBtn.innerText = '☀️';
+            scene.background.setHex(COLORS.sky);
+            scene.fog.color.setHex(COLORS.sky);
+            ambientLight.intensity = 0.6;
+            dirLight.color.setHex(0xffffff);
+            dirLight.intensity = 0.9;
+            
+            // Turn off Lamp
+            if(lampLight && lampBulbMat && lampGlassMat) {
+                lampLight.intensity = 0;
+                lampBulbMat.emissive.setHex(0x000000);
+                lampBulbMat.emissiveIntensity = 0;
+                lampGlassMat.opacity = 0.3;
+                lampGlassMat.emissive.setHex(0x000000);
+            }
+        }
+    }
+    
+    // Toggle Button Click
+    themeToggleBtn.addEventListener('click', () => {
+        applyTheme(!isDarkMode);
+    });
+    
+    // System Preference Listener (Optional: only if you want it to auto-switch correctly)
+    // systemDarkMode.addListener((e) => {
+    //    // Only update if user hasn't explicitly toggled? 
+    //    // For simplicity, let's let the button override, but start with system pref.
+    // });
+    
+    
     // --- 3. ENVIRONMENT & COLLISION SYSTEM ---
     const obstacles = [];
     const binChunks = new Map(); // Spatial Hash for bins
@@ -531,6 +674,85 @@
     }
 
     let validSlots = []; 
+    
+    function createLamp() {
+        const lampGroup = new THREE.Group();
+        
+        const metalMat = new THREE.MeshToonMaterial({ color: COLORS.metal });
+        
+        // 1. Base (Stepped)
+        const baseGeo = new THREE.CylinderGeometry(0.25, 0.35, 0.4, 8);
+        const base = new THREE.Mesh(baseGeo, metalMat);
+        base.position.y = 0.2;
+        base.castShadow = true;
+        lampGroup.add(base);
+
+        // 2. Pole
+        const poleGeo = new THREE.CylinderGeometry(0.08, 0.1, 3.2, 8);
+        const pole = new THREE.Mesh(poleGeo, metalMat);
+        pole.position.y = 1.8; // On top of base
+        pole.castShadow = true;
+        lampGroup.add(pole);
+        
+        // 3. Decorative Neck Ring
+        const neckGeo = new THREE.TorusGeometry(0.12, 0.04, 8, 16);
+        const neck = new THREE.Mesh(neckGeo, metalMat);
+        neck.rotation.x = Math.PI / 2;
+        neck.position.y = 3.3;
+        lampGroup.add(neck);
+
+        // 4. Lantern Housing (Glass)
+        // A wider cylinder/hexagonal prism
+        const glassGeo = new THREE.CylinderGeometry(0.3, 0.2, 0.6, 6);
+        lampGlassMat = new THREE.MeshStandardMaterial({ 
+            color: 0xffffee, 
+            transparent: true, 
+            opacity: 0.3,
+            roughness: 0.2,
+            metalness: 0.5,
+            emissive: 0x000000 
+        });
+        const glass = new THREE.Mesh(glassGeo, lampGlassMat);
+        glass.position.y = 3.7;
+        lampGroup.add(glass);
+        
+        // 5. Lantern Cap (Metal)
+        const capGeo = new THREE.ConeGeometry(0.4, 0.3, 6);
+        const cap = new THREE.Mesh(capGeo, metalMat);
+        cap.position.y = 4.15;
+        cap.castShadow = true;
+        lampGroup.add(cap);
+        
+        // 6. Finial (Top ball)
+        const finialGeo = new THREE.SphereGeometry(0.08, 8, 8);
+        const finial = new THREE.Mesh(finialGeo, metalMat);
+        finial.position.y = 4.35;
+        lampGroup.add(finial);
+        
+        // 7. Bulb (The emissive part inside)
+        const bulbGeo = new THREE.SphereGeometry(0.12, 16, 16);
+        lampBulbMat = new THREE.MeshStandardMaterial({ 
+            color: 0xffffaa, 
+            emissive: 0x000000, 
+            emissiveIntensity: 0 
+        });
+        const bulb = new THREE.Mesh(bulbGeo, lampBulbMat);
+        bulb.position.y = 3.7;
+        lampGroup.add(bulb);
+        
+        // 8. The Light Source
+        lampLight = new THREE.PointLight(0xffaa00, 0, 15, 2);
+        lampLight.position.set(0, 3.7, 0);
+        lampLight.castShadow = true; 
+        lampLight.shadow.bias = -0.0001;
+        lampGroup.add(lampLight);
+        
+        // Position near bench
+        lampGroup.position.set(-4.5, 0, -2); 
+        
+        scene.add(lampGroup);
+        registerObstacle(-4.5, -2, 0.4);
+    }
 
     function createEnvironment() {
         const envGroup = new THREE.Group();
@@ -637,7 +859,10 @@
         validSlots.sort((a, b) => a.d - b.d);
     }
 
-    createEnvironment(); createLandmarks(); generateSlots();
+    createEnvironment(); createLamp(); createLandmarks(); generateSlots();
+    
+    // Apply initial theme after creation so lamp is affected
+    applyTheme(isDarkMode);
 
     function createGrass() {
         const count = 5000;
@@ -1052,8 +1277,14 @@
         if (source !== 'input' && source !== 'rain') input.value = liters;
         if (source !== 'slider' && count > 0) slider.value = getSliderFromCount(count);
         
+        const infillAutoToggle = 60000
+
         if (!userToggledShell) {
-            shellToggle.checked = (count >= 60000);
+            shellToggle.checked = (count >= infillAutoToggle);
+        }
+
+        if (!userToggledInfill) {
+            infillToggle.checked = (count >= infillAutoToggle);
         }
         
         // Update Presentation Note
