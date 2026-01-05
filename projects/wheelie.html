@@ -54,6 +54,25 @@
             z-index: 100;
         }
 
+        /* --- PRESENTATION MODE FOOTNOTE --- */
+        #presentation-note {
+            display: none; /* Hidden by default */
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(8px);
+            padding: 8px 16px;
+            border-radius: 20px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            font-size: 13px;
+            font-weight: 600;
+            color: #1a472a;
+            pointer-events: none;
+            z-index: 100;
+            border: 1px solid rgba(255,255,255,0.5);
+        }
+
         h2 {
             margin: 0 0 10px 0;
             font-size: 18px;
@@ -292,6 +311,13 @@
             label { font-size: 10px; margin-top: 10px; }
             input[type=range] { margin-top: 5px; }
             #mobile-toggle { margin-top: 10px; font-size: 11px; }
+            
+            #presentation-note {
+                bottom: 10px;
+                right: 10px;
+                font-size: 11px;
+                padding: 6px 12px;
+            }
         }
     </style>
     
@@ -302,6 +328,8 @@
 
 <div id="canvas-wrapper"></div>
 <div id="controls-hint">Use W, A, S, D to Move</div>
+
+<div id="presentation-note">Presentation Mode • <span id="pres-flow-val">0</span> L/s</div>
 
 <div id="ui-container">
     <h2>Wheelie Bin Flow</h2>
@@ -420,6 +448,7 @@
     const targetCameraPos = new THREE.Vector3(5, 5, 5);
     const targetLookAt = new THREE.Vector3(0, 0.5, 0);
     let shouldAutoPan = false;
+    let isInstantSnap = false; // Used for flow mode initial load
 
     const renderer = new THREE.WebGLRenderer({ antialias: true });
     renderer.setSize(canvasWrapper.clientWidth, canvasWrapper.clientHeight);
@@ -611,6 +640,8 @@
 
     function setupInstancedMeshes(count, highDetail) {
         disposeInstancedMeshes();
+        if (count === 0) return; // Don't create meshes for 0 count
+
         isHighPoly = highDetail;
         imBody = new THREE.InstancedMesh(boxBodyGeo, bodyMat, count); imBody.castShadow = true; imBody.receiveShadow = true; scene.add(imBody);
         imLid = new THREE.InstancedMesh(boxLidGeo, lidMat, count); imLid.castShadow = true; scene.add(imLid);
@@ -676,6 +707,18 @@
     function populateScene(targetCount, doAutoFit = true) {
         // Clear old spatial hash
         binChunks.clear();
+
+        // HANDLE 0 COUNT
+        if (targetCount === 0) {
+            disposeInstancedMeshes();
+            if (coreMesh) { scene.remove(coreMesh); coreMesh.geometry.dispose(); coreMesh = null; }
+            if (doAutoFit && !playerModeActive) {
+                targetCameraPos.set(5, 5, 5);
+                targetLookAt.set(0, 0.5, 0);
+                shouldAutoPan = true;
+            }
+            return;
+        }
 
         const shellToggle = document.getElementById('shellToggle');
         const infillToggle = document.getElementById('infillToggle');
@@ -757,9 +800,14 @@
 
         if (doAutoFit && !playerModeActive) {
             const pileCenterY = currentHeight / 2; const pileCenter = new THREE.Vector3(0, pileCenterY, 0); targetLookAt.copy(pileCenter);
-            const boundSize = Math.max(currentRadius * 1.5, currentHeight); const dist = 8 + (boundSize * 1.8);
+            
+            // ADJUSTED ZOOM: Reduced multiplier from 1.8 to 1.5 for tighter shot
+            const boundSize = Math.max(currentRadius * 1.5, currentHeight); 
+            const dist = 8 + (boundSize * 1.5); 
+            
             const offset = new THREE.Vector3(1, 0.8, 1).normalize().multiplyScalar(dist);
-            targetCameraPos.copy(pileCenter).add(offset); shouldAutoPan = true;
+            targetCameraPos.copy(pileCenter).add(offset); 
+            shouldAutoPan = true;
         }
     }
 
@@ -911,8 +959,9 @@
     const infillToggle = document.getElementById('infillToggle');
     const walkToggle = document.getElementById('walkToggle');
     const controlsHint = document.getElementById('controls-hint');
+    const presNote = document.getElementById('presentation-note');
+    const presFlowVal = document.getElementById('pres-flow-val');
     
-    // New Controls
     const modeSelect = document.getElementById('modeSelect');
     const directControls = document.getElementById('directControls');
     const rainControls = document.getElementById('rainControls');
@@ -957,7 +1006,7 @@
     function getSliderFromCount(count) { if(count < 1) count = 1; return (Math.log(count) - minVal) / scale; }
 
     function updateState(count, source) {
-        if(count < 1) count = 1; if(count > 2000000) count = 2000000;
+        if(count < 0) count = 0; if(count > 2000000) count = 2000000;
         currentCount = count;
         
         const liters = count * 120;
@@ -966,13 +1015,16 @@
         
         // Sync Inputs depending on who triggered the update
         if (source !== 'input' && source !== 'rain') input.value = liters;
-        if (source !== 'slider') slider.value = getSliderFromCount(count);
+        if (source !== 'slider' && count > 0) slider.value = getSliderFromCount(count);
         
         if (!userToggledShell) {
             shellToggle.checked = (count >= 60000);
         }
         
-        populateScene(count, source !== 'init');
+        // Update Presentation Note
+        presFlowVal.innerText = liters.toLocaleString();
+
+        populateScene(count, source !== 'init' || isInstantSnap);
     }
 
     function recalculateRain() {
@@ -980,7 +1032,7 @@
         const area = parseFloat(areaInput.value) || 0;
         const totalLitersPerHour = mm * area;
         const lps = totalLitersPerHour / 3600;
-        const binCount = Math.max(1, Math.ceil(lps / 120));
+        const binCount = Math.max(0, Math.ceil(lps / 120)); // Allow 0
         updateState(binCount, 'rain');
     }
 
@@ -994,7 +1046,7 @@
     
     input.addEventListener('change', (e) => { 
         const val = parseInt(e.target.value); 
-        if(!val) return; 
+        if(isNaN(val)) return; 
         updateState(Math.ceil(val / 120), 'input'); 
     });
 
@@ -1031,25 +1083,45 @@
         }
     });
 
-    // --- URL PARAMETER HANDLING ---
-    const urlParams = new URLSearchParams(window.location.search);
-    const flowParam = urlParams.get('flow'); // e.g. ?flow=5000
-
-    let initialBinCount = 10;
-
-    if (flowParam) {
-        const requestedFlow = parseFloat(flowParam);
-        if (!isNaN(requestedFlow) && requestedFlow > 0) {
-            // 1 bin = 120 L/s. Round up to ensure we cover the flow.
-            initialBinCount = Math.max(1, Math.ceil(requestedFlow / 120));
-        }
-    }
-
-    updateState(initialBinCount, 'init');
-
+    // --- INITIALIZATION ORDER ---
+    
+    // 1. Create Controls FIRST
     const controls = new THREE.OrbitControls(camera, renderer.domElement);
     controls.enableDamping = true; controls.dampingFactor = 0.05; controls.target.set(0, 0.5, 0);
     controls.addEventListener('start', () => { shouldAutoPan = false; });
+
+    // 2. Parse URL Params
+    const urlParams = new URLSearchParams(window.location.search);
+    const flowParam = urlParams.get('flow'); // e.g. ?flow=5000 or ?flow=0
+
+    let initialBinCount = 10;
+
+    if (flowParam !== null) { 
+        const requestedFlow = parseFloat(flowParam);
+        if (!isNaN(requestedFlow)) {
+            initialBinCount = Math.max(0, Math.ceil(requestedFlow / 120));
+            
+            // HIDE UI
+            document.getElementById('ui-container').style.display = 'none';
+            // SHOW PRESENTATION NOTE
+            presNote.style.display = 'block';
+            
+            // FLAG INSTANT SNAP for first load
+            isInstantSnap = true;
+        }
+    }
+
+    // 3. Initial Update
+    updateState(initialBinCount, 'init');
+
+    // If instant snap was requested (Flow Mode), force camera position NOW before first render
+    if (isInstantSnap && shouldAutoPan) {
+        camera.position.copy(targetCameraPos);
+        controls.target.copy(targetLookAt);
+        controls.update();
+        shouldAutoPan = false; // Disable lerp since we are already there
+        isInstantSnap = false;
+    }
     
     function animate() {
         requestAnimationFrame(animate);
