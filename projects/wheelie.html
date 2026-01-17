@@ -15,7 +15,7 @@
             flex-direction: column;
             height: 100vh; 
             width: 100vw;
-            transition: background-color 0.8s ease; /* Slower transition for day/night cycle */
+            transition: background-color 0.8s ease;
         }
         
         #canvas-wrapper {
@@ -448,7 +448,8 @@
     <label>Calculation Mode</label>
     <select id="modeSelect">
         <option value="direct">Direct Flow (L/s)</option>
-        <option value="rain">Rainfall Event (mm/hr)</option>
+        <option value="rain">Rainfall Intensity (mm/hr)</option>
+        <option value="staticRain">Static Rainfall (Total Volume)</option>
     </select>
 
     <div id="directControls">
@@ -476,6 +477,29 @@
         </div>
         <div class="footer-note" style="margin-top:5px; border:none;">
             1 mm of rain on 1 m² = 1 Liter.
+        </div>
+    </div>
+
+    <div id="staticRainControls" class="hidden">
+        <label>Total Rainfall</label>
+        <div class="input-wrapper">
+            <input type="number" id="staticMmInput" value="25">
+            <span class="unit">mm</span>
+        </div>
+
+        <label>Catchment Area</label>
+        <div class="input-wrapper">
+            <input type="number" id="staticAreaInput" value="1">
+            </div>
+        
+        <select id="areaUnitSelect" style="margin-top:5px;">
+            <option value="1">Square Meters (m²)</option>
+            <option value="10000">Hectares (ha)</option>
+            <option value="1000000">Square Kilometers (km²)</option>
+        </select>
+
+        <div class="footer-note" style="margin-top:5px; border:none;">
+            Calculates total volume, not flow rate.
         </div>
     </div>
     
@@ -651,8 +675,8 @@
     
     // System Preference Listener (Optional: only if you want it to auto-switch correctly)
     // systemDarkMode.addListener((e) => {
-    //    // Only update if user hasn't explicitly toggled? 
-    //    // For simplicity, let's let the button override, but start with system pref.
+    //     // Only update if user hasn't explicitly toggled? 
+    //     // For simplicity, let's let the button override, but start with system pref.
     // });
     
     
@@ -1228,6 +1252,12 @@
     const rainMmInput = document.getElementById('rainMmInput');
     const areaInput = document.getElementById('areaInput');
 
+    // New Static Rain Controls
+    const staticRainControls = document.getElementById('staticRainControls');
+    const staticMmInput = document.getElementById('staticMmInput');
+    const staticAreaInput = document.getElementById('staticAreaInput');
+    const areaUnitSelect = document.getElementById('areaUnitSelect');
+
     const minVal = Math.log(1); const maxVal = Math.log(2000000); const scale = (maxVal - minVal) / 1000;
     
     let userToggledShell = false;
@@ -1271,10 +1301,18 @@
         
         const liters = count * 120;
         txtBins.innerText = `${count.toLocaleString()} ${count === 1 ? 'bin' : 'bins'}`;
-        txtLiters.innerText = `(${liters.toLocaleString()} L/s)`;
+        
+        // Update display based on mode (Rate vs Total)
+        if (currentMode === 'staticRain') {
+            txtLiters.innerText = `(${liters.toLocaleString()} Total Liters)`;
+            presFlowVal.innerText = `(${liters.toLocaleString()} Total Liters)`;
+        } else {
+            txtLiters.innerText = `(${liters.toLocaleString()} L/s)`;
+            presFlowVal.innerText = `(${liters.toLocaleString()} L/s)`;
+        }
         
         // Sync Inputs depending on who triggered the update
-        if (source !== 'input' && source !== 'rain') input.value = liters;
+        if (source !== 'input' && source !== 'rain' && source !== 'staticRain') input.value = liters;
         if (source !== 'slider' && count > 0) slider.value = getSliderFromCount(count);
         
         const infillAutoToggle = 60000
@@ -1287,9 +1325,8 @@
             infillToggle.checked = (count >= infillAutoToggle);
         }
         
-        // Update Presentation Note
+        // Update Presentation Note (Bin count)
         presBinVal.innerText = `${count.toLocaleString()} bins`;
-        presFlowVal.innerText = `(${liters.toLocaleString()} L/s)`;
 
         populateScene(count, source !== 'init' || isInstantSnap);
     }
@@ -1303,8 +1340,20 @@
         updateState(binCount, 'rain');
     }
 
+    function recalculateStaticRain() {
+        const mm = parseFloat(staticMmInput.value) || 0;
+        const area = parseFloat(staticAreaInput.value) || 0;
+        const multiplier = parseFloat(areaUnitSelect.value) || 1;
+        
+        // 1mm = 1 Liter per m2
+        // Total Liters = mm * (Area * UnitMultiplier)
+        const totalLiters = mm * (area * multiplier);
+        const binCount = Math.max(0, Math.ceil(totalLiters / 120));
+        updateState(binCount, 'staticRain');
+    }
+
     slider.addEventListener('input', (e) => { 
-        if(currentMode === 'rain') {
+        if(currentMode !== 'direct') {
             modeSelect.value = 'direct';
             toggleMode();
         }
@@ -1320,16 +1369,28 @@
     rainMmInput.addEventListener('input', recalculateRain);
     areaInput.addEventListener('input', recalculateRain);
 
+    // Static Rain Listeners
+    staticMmInput.addEventListener('input', recalculateStaticRain);
+    staticAreaInput.addEventListener('input', recalculateStaticRain);
+    areaUnitSelect.addEventListener('change', recalculateStaticRain);
+
     function toggleMode() {
         currentMode = modeSelect.value;
+        
+        // Hide all first
+        directControls.classList.add('hidden');
+        rainControls.classList.add('hidden');
+        staticRainControls.classList.add('hidden');
+
         if (currentMode === 'direct') {
             directControls.classList.remove('hidden');
-            rainControls.classList.add('hidden');
             updateState(getCountFromSlider(parseInt(slider.value)), 'slider');
-        } else {
-            directControls.classList.add('hidden');
+        } else if (currentMode === 'rain') {
             rainControls.classList.remove('hidden');
             recalculateRain();
+        } else if (currentMode === 'staticRain') {
+            staticRainControls.classList.remove('hidden');
+            recalculateStaticRain();
         }
     }
     modeSelect.addEventListener('change', toggleMode);
